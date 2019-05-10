@@ -435,7 +435,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 			log.debug("--------------------------------------- transmitter ---------------------------------");
 		}
 
-		//Map<Integer, Format> customFormats = initCustomFormatsForRtp();
+		Map<Integer, Format> customFormats = initCustomFormatsForRtp();
 
 		// Cheated. Should have checked the type.
 		PushBufferDataSource pbds = (PushBufferDataSource) processor.getDataOutput();
@@ -458,10 +458,10 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 				RTPManager mgr = RTPManager.newInstance();
 				rtpMgrs[i] =  mgr;
 
-/*				for (Integer payloadType : customFormats.keySet()) {
+				for (Integer payloadType : customFormats.keySet()) {
 					Format fmt = customFormats.get(payloadType);
 					mgr.addFormat(fmt, payloadType);
-				}*/
+				}
 
 				// The local session address will be created on the
 				// same port as the the target port. This is necessary
