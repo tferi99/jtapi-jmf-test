@@ -32,6 +32,7 @@ public class TestMediaProcessor
 
 		MediaProcessorConfig cfg = new MediaProcessorConfig();
 
+		// ================================== processing ==================================
 		//cfg = initTestProcessing();
 
 		// -------------- convert from PCM -----------------
@@ -55,12 +56,16 @@ public class TestMediaProcessor
         //cfg = initULaw_To_Player();
         //cfg.setInteractiveMode(true);
 
-        // RTP clien endpoint
+		// ================================== custom processing ==================================
+		//cfg.setCustomProcessing(CustomProcessing.GAIN);
+
+		// ================================== RTP client endpoint ==================================
 		cfg.setRtpTargetAddress("10.122.188.255");
 		cfg.setRtpTargetPort(22222);
 
-
+		// ================================== is interactive? ==================================
 		cfg.setInteractiveMode(true);
+
 
 		MediaProcessor mp = new MediaProcessor(cfg);
 		// media

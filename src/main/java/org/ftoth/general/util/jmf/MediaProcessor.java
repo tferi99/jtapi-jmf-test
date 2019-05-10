@@ -7,8 +7,8 @@ import com.sun.media.rtp.RTPSessionMgr;
 import jmapps.util.JMFUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ftoth.general.util.jmf.effect.GainEffect;
 import org.ftoth.general.util.jmf.g729.G729Packetizer;
-import org.ftoth.general.util.onesec.codec.g729.G729Decoder;
 import org.ftoth.general.util.onesec.codec.g729.G729Encoder;
 
 import javax.media.*;
@@ -37,7 +37,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 	private static final Log log = LogFactory.getLog(MediaProcessor.class);
 
 	public enum CustomProcessing {
-		NONE, PCM_TO_PCM, ULAW, ULAW_RTP, G729, G729_RTP, G729_RTP_FROM_RAW, GSM, GSM_RTP, TEST
+		NONE, PCM_TO_PCM, ULAW, ULAW_RTP, G729, G729_RTP, G729_RTP_FROM_RAW, GSM, GSM_RTP, TEST, GAIN
 	}
 
 	public enum PresentingTarget {
@@ -86,7 +86,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 			ui = new MediaProcessorUI();
 		}
 
-		initCustomRtpCodecs();
+		initCustomFormatsForProcessor();
 	}
 
 	public boolean initAndStart()
@@ -364,11 +364,13 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 				codecs.add(new com.ibm.media.codec.audio.gsm.JavaEncoder());
 				codecs.add(new com.ibm.media.codec.audio.gsm.Packetizer());
 				break;
+			case GAIN:
+				codecs.add(new GainEffect());
+				break;
 			case TEST:
-				codecs.add(new com.ibm.media.codec.audio.PCMToPCM());
-				// codecs.add(new GainEffect());
+				//codecs.add(new com.ibm.media.codec.audio.PCMToPCM());
 				// codecs.add(new org.ftoth.general.util.onesec.codec.g729.G729Encoder());
-				codecs.add(new G729Decoder());
+				//codecs.add(new G729Decoder());
 				// codecs.add(new com.ibm.media.codec.audio.gsm.JavaEncoder());
 				// codecs.add(new com.ibm.media.codec.audio.gsm.Packetizer());
 				break;
@@ -458,6 +460,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 				RTPManager mgr = RTPManager.newInstance();
 				rtpMgrs[i] =  mgr;
 
+				// adding custom formats to RTPManager
 				for (Integer payloadType : customFormats.keySet()) {
 					Format fmt = customFormats.get(payloadType);
 					mgr.addFormat(fmt, payloadType);
@@ -538,12 +541,12 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 		// private FileTypeDescriptor contentType = new FileTypeDescriptor("lofasz");
 
 		// ------------------------- custom processing -------------------------
-		// custom processing, if doCustomProcessing is true
+		// custom processing
 		// NONE, ULAW_RTP, G729, ....
-		// private CustomProcessing customProcessing = CustomProcessing.NONE;
+		private CustomProcessing customProcessing = CustomProcessing.NONE;
 		// private CustomProcessing customProcessing = CustomProcessing.G729;
 		// private CustomProcessing customProcessing = CustomProcessing.TEST;
-		private CustomProcessing customProcessing = CustomProcessing.G729_RTP_FROM_RAW;
+		//private CustomProcessing customProcessing = CustomProcessing.G729_RTP_FROM_RAW;
 
 		// ------------------------- desired output format -------------------------
 		// desired output format for processing
@@ -776,16 +779,19 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 	}
 
 
-	private void initCustomRtpCodecs()
+	private void initCustomFormatsForProcessor()
 	{
+		// ------------------- RTP formats -------------------
 		// dummy (to access internal static format list via non-static addFormat() )
-		RTPSessionMgr mgr = JMFUtils.createSessionManager("127.0.0.1", 65000, 32, new ReceiveStreamListener()
+		RTPManager mgr = RTPManager.newInstance();
+
+		/*RTPSessionMgr mgr = JMFUtils.createSessionManager("127.0.0.1", 65000, 32, new ReceiveStreamListener()
 		{
 			public void update(ReceiveStreamEvent receiveStreamEvent)
 			{
 				// do nothing
 			}
-		});
+		});*/
 
 		Map<Integer, Format> customFormats = initCustomFormatsForRtp();
 
