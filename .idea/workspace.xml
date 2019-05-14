@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f67b3e5e-be00-4c9f-b000-b9b36cc1d2a0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ftoth/general/util/jmf/MediaProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ftoth/general/util/jmf/MediaProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ftoth/jtapijmftest/TestMediaProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ftoth/jtapijmftest/TestMediaProcessor.java" afterDir="false" />
-    </list>
+    <list default="true" id="f67b3e5e-be00-4c9f-b000-b9b36cc1d2a0" name="Default Changelist" comment="" />
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -149,7 +146,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1557494688818" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1557494977616" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -203,12 +200,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1557488311897</updated>
-      <workItem from="1557488314945" duration="6477000" />
+      <workItem from="1557488314945" duration="7076000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="6477000" />
+    <option name="totallyTimeSpent" value="7076000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1186" extended-state="6" />
@@ -219,7 +216,7 @@
       <window_info id="Capture Tool" order="2" />
       <window_info id="UI Designer" order="3" />
       <window_info id="Favorites" order="4" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="5" visible="true" weight="0.18603411" />
+      <window_info content_ui="combo" id="Project" order="5" visible="true" weight="0.18603411" />
       <window_info id="JRebel" order="6" side_tool="true" />
       <window_info id="Structure" order="7" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Spring" order="0" />
@@ -229,11 +226,11 @@
       <window_info anchor="bottom" id="Database Changes" order="4" />
       <window_info anchor="bottom" id="Version Control" order="5" />
       <window_info anchor="bottom" id="JRebel Executor" order="6" />
-      <window_info anchor="bottom" id="JRebel Console" order="7" side_tool="true" />
+      <window_info active="true" anchor="bottom" id="JRebel Console" order="7" sideWeight="0.50053304" side_tool="true" visible="true" weight="0.3297769" />
       <window_info anchor="bottom" id="Message" order="8" />
       <window_info anchor="bottom" id="Find" order="9" weight="0.32913843" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Run" order="11" visible="true" weight="0.328807" />
+      <window_info anchor="bottom" id="Run" order="11" sideWeight="0.49946696" weight="0.328807" />
       <window_info anchor="bottom" id="Debug" order="12" weight="0.30746847" />
       <window_info anchor="bottom" id="Cvs" order="13" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="14" weight="0.4" />
