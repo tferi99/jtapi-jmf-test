@@ -15,8 +15,6 @@
  */
 package org.ftoth.general.util.onesec.codec.alaw.libjitsi;
 
-import org.ftoth.general.util.onesec.codec.alaw.titov.AlawAudioFormat;
-
 import javax.media.*;
 import javax.media.format.*;
 

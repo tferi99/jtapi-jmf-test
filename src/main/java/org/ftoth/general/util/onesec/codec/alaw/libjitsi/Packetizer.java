@@ -21,7 +21,6 @@ import javax.media.Format;
 import javax.media.ResourceUnavailableException;
 import javax.media.format.AudioFormat;
 
-
 /**
  * Implements an RTP packetizer for the A-law codec.
  *
