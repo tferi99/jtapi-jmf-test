@@ -12,18 +12,22 @@ import javax.media.protocol.FileTypeDescriptor;
 {
 	public static final String OUTPUT_FORMAT_HEADLESS_LINEAR = "audio.linear";
 	public static final String OUTPUT_FORMAT_HEADLESS_G729 = "audio.g729";
+	public static final String OUTPUT_FORMAT_HEADLESS_ALAW = "audio.alaw";
 
 	public HeadlessAudioMux()
 	{
-		supportedInputs = new Format[2];
+		supportedInputs = new Format[3];
 		supportedInputs[0] = new AudioFormat(AudioFormat.LINEAR, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
 				Format.NOT_SPECIFIED, Format.byteArray);
 		supportedInputs[1] = new AudioFormat(AudioFormat.G729, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
 				Format.NOT_SPECIFIED, Format.byteArray);
+		supportedInputs[2] = new AudioFormat(AudioFormat.ALAW, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
+				Format.NOT_SPECIFIED, Format.byteArray);
 
-		supportedOutputs = new ContentDescriptor[2];
+		supportedOutputs = new ContentDescriptor[3];
 		supportedOutputs[0] = new FileTypeDescriptor(OUTPUT_FORMAT_HEADLESS_LINEAR);
 		supportedOutputs[1] = new FileTypeDescriptor(OUTPUT_FORMAT_HEADLESS_G729);
+		supportedOutputs[2] = new FileTypeDescriptor(OUTPUT_FORMAT_HEADLESS_ALAW);
 	}
 
 	@Override

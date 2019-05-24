@@ -37,21 +37,16 @@ public class TestMediaProcessor
 
 		// -------------- convert from PCM -----------------
 		//cfg = initPCM_To_ULaw();								// ok
-
-		// -------------- convert to PCM -----------------
 		//cfg = initULaw_To_PCM();								// ok
-
-		// -------------- convert to g729 -----------------
 		//cfg = initPCM_To_G729();								// ok
-
+		//cfg = initPCM_To_ALAW();								// ok ?????????????????????? output created but content not tested
 
 
 		//-------------- RTP transmit ---------------------
 		//cfg = initUlawRTP();									// ok
 		//cfg = initG729RTP();									// ok
-		cfg = initAlawRTP();									// ok
-
-		//cfg = initG729_To_729RTP();
+		//cfg = initAlawRTP();									// ok
+		cfg = initG729RTP_from_G729();							// ok
 
         //cfg = initULaw_To_Player();
         //cfg.setInteractiveMode(true);
@@ -100,16 +95,30 @@ public class TestMediaProcessor
 	{
 		MediaProcessorConfig cfg = new MediaProcessorConfig();
 
-		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/ring-8000Hz-16b-mono.wav");
+		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.wav");
 		cfg.setContentType(new FileTypeDescriptor(HeadlessAudioMux.OUTPUT_FORMAT_HEADLESS_G729));
 		cfg.setCustomProcessing(CustomProcessing.NONE);
 		cfg.setDesiredOutputFormat(new G729AudioFormat(new AudioFormat(AudioFormat.G729_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray)));
 		cfg.setPresentingTarget(PresentingTarget.SINK);
-		cfg.setOutputSinkDataUrl("file:/c:/Users/ftoth/Documents/media/ring-8000Hz-16b-mono.g729");
+		cfg.setOutputSinkDataUrl("file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.g729");
 
 		return cfg;
 	}
 
+	// PCM -> alaw file
+	private static MediaProcessorConfig initPCM_To_ALAW()
+	{
+		MediaProcessorConfig cfg = new MediaProcessorConfig();
+
+		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/ring-8000Hz-16b-mono.wav");
+		cfg.setContentType(new FileTypeDescriptor(HeadlessAudioMux.OUTPUT_FORMAT_HEADLESS_ALAW));
+		cfg.setCustomProcessing(CustomProcessing.NONE);
+		cfg.setDesiredOutputFormat(new AudioFormat(AudioFormat.ALAW, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray));
+		cfg.setPresentingTarget(PresentingTarget.SINK);
+		cfg.setOutputSinkDataUrl("file:/c:/Users/ftoth/Documents/media/ring-8000Hz-16b-mono.alaw");
+
+		return cfg;
+	}
 
 	// ------------------------- some sample environment -------------------------
 	// PCM -> uLaw RTP
@@ -140,6 +149,20 @@ public class TestMediaProcessor
 		return cfg;
 	}
 
+	// g729 -> g729 RTP
+	private static MediaProcessorConfig initG729RTP_from_G729()
+	{
+		MediaProcessorConfig cfg = new MediaProcessorConfig();
+
+		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.g729");
+		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP));
+		cfg.setCustomProcessing(CustomProcessing.NONE);
+		cfg.setDesiredOutputFormat(new G729AudioFormat(new AudioFormat(AudioFormat.G729_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, 8, Format.NOT_SPECIFIED, Format.byteArray)));
+		cfg.setPresentingTarget(PresentingTarget.RTP);
+
+		return cfg;
+	}
+
 
 	// PCM -> ALaw RTP
 	private static MediaProcessorConfig initAlawRTP()
@@ -155,26 +178,6 @@ public class TestMediaProcessor
 
 		return cfg;
 	}
-
-	// g729 -> g729 RTP
-	private static MediaProcessorConfig initG729_To_729RTP()
-	{
-		MediaProcessorConfig cfg = new MediaProcessorConfig();
-		
-		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/out.g729");
-		//inputDataUrl = "file:/c:/Users/ftoth/Documents/media/x.g729");
-		
-		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP));
-		cfg.setCustomProcessing(CustomProcessing.G729_RTP_FROM_RAW);
-		
-		//desiredOutputFormat = new G729AudioFormat(new AudioFormat(AudioFormat.G729_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.SIGNED, G729Parser.CODEFRAMESIZE * 8, G729Parser.FRAMERATE, Format.byteArray)));
-		cfg.setDesiredOutputFormat(new AudioFormat(AudioFormat.G729_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.SIGNED, G729Parser.CODEFRAMESIZE * 8, G729Parser.FRAMERATE, Format.byteArray));
-		
-		cfg.setPresentingTarget(PresentingTarget.RTP);					
-		
-		return cfg;
-	}
-
 
 	// uLaw -> PCM file
 	private static MediaProcessorConfig initULaw_To_PCM()
