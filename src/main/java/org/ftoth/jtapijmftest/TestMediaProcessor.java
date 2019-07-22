@@ -45,8 +45,8 @@ public class TestMediaProcessor
 		//-------------- RTP transmit ---------------------
 		//cfg = initUlawRTP();									// ok
 		//cfg = initG729RTP();									// ok
-		//cfg = initAlawRTP();									// ok
-		cfg = initG729RTP_from_G729();							// ok
+		cfg = initAlawRTP();									// ok
+		//cfg = initG729RTP_from_G729();							// ok
 
         //cfg = initULaw_To_Player();
         //cfg.setInteractiveMode(true);
@@ -175,6 +175,8 @@ public class TestMediaProcessor
 		AudioFormat f = new AudioFormat(Constants.ALAW_RTP, 8000,8,1, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, 8, 8000, Format.byteArray);
 		cfg.setDesiredOutputFormat(f);
 		cfg.setPresentingTarget(PresentingTarget.RTP);
+
+		// TODO: you need to install custom codecs and packetizer programmatically (what you find in etc/jmf.properties_ALAW)
 
 		return cfg;
 	}
