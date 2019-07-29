@@ -55,7 +55,8 @@ public class TestMediaProcessor
 		//cfg.setCustomProcessing(CustomProcessing.GAIN);
 
 		// ================================== RTP client endpoint ==================================
-		cfg.setRtpTargetAddress("10.122.188.255");
+		//cfg.setRtpTargetAddress("10.122.188.255");
+		cfg.setRtpTargetAddress("192.168.8.255");
 		cfg.setRtpTargetPort(22222);
 
 		// ================================== is interactive? ==================================
