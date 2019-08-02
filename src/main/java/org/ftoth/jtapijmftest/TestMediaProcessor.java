@@ -1,7 +1,6 @@
 package org.ftoth.jtapijmftest;
 
 import com.sun.media.codec.audio.ulaw.Packetizer;
-import com.sun.media.parser.audio.G729Parser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ftoth.general.util.jmf.HeadlessAudioMux;
@@ -9,13 +8,9 @@ import org.ftoth.general.util.jmf.MediaProcessor;
 import org.ftoth.general.util.jmf.MediaProcessor.CustomProcessing;
 import org.ftoth.general.util.jmf.MediaProcessor.MediaProcessorConfig;
 import org.ftoth.general.util.jmf.MediaProcessor.PresentingTarget;
-import org.ftoth.general.util.jmf.g729.G729Packetizer;
-import org.ftoth.general.util.onesec.codec.alaw.libjitsi.AlawAudioFormat;
 import org.ftoth.general.util.onesec.codec.alaw.libjitsi.Constants;
-import org.ftoth.general.util.onesec.codec.alaw.titov.UlawPacketizer;
+import org.ftoth.general.util.onesec.codec.alaw.libjitsi.JavaEncoder;
 import org.ftoth.general.util.onesec.codec.g729.G729AudioFormat;
-import org.ftoth.general.util.onesec.codec.g729.G729Decoder;
-import org.ftoth.general.util.onesec.codec.g729.G729Encoder;
 
 import javax.media.Format;
 import javax.media.PlugInManager;
@@ -45,18 +40,21 @@ public class TestMediaProcessor
 		//-------------- RTP transmit ---------------------
 		//cfg = initUlawRTP();									// ok
 		//cfg = initG729RTP();									// ok
-		cfg = initAlawRTP();									// ok
+		//cfg = initAlawRTP();									// ok
 		//cfg = initG729RTP_from_G729();							// ok
 
-        //cfg = initULaw_To_Player();
-        //cfg.setInteractiveMode(true);
+		//-------------- play from file ---------------------
+		cfg = initLinear_To_Player();
+        cfg = initULaw_To_Player();
+
+
 
 		// ================================== custom processing ==================================
 		//cfg.setCustomProcessing(CustomProcessing.GAIN);
 
 		// ================================== RTP client endpoint ==================================
-		//cfg.setRtpTargetAddress("10.122.188.255");
-		cfg.setRtpTargetAddress("192.168.8.255");
+		cfg.setRtpTargetAddress("10.122.188.255");
+		//cfg.setRtpTargetAddress("192.168.8.255");
 		cfg.setRtpTargetPort(22222);
 
 		// ================================== is interactive? ==================================
@@ -166,18 +164,31 @@ public class TestMediaProcessor
 
 
 	// PCM -> ALaw RTP
+	// Custom codecs are regiastered here, you can use it with default jmf.properties
 	private static MediaProcessorConfig initAlawRTP()
 	{
 		MediaProcessorConfig cfg = new MediaProcessorConfig();
 
+		// custom codecs
+		org.ftoth.general.util.onesec.codec.alaw.libjitsi.JavaEncoder en = new org.ftoth.general.util.onesec.codec.alaw.libjitsi.JavaEncoder();
+		PlugInManager.addPlugIn(org.ftoth.general.util.onesec.codec.alaw.libjitsi.JavaEncoder.class.getName(), en.getSupportedInputFormats(), en.getSupportedOutputFormats(null), PlugInManager.CODEC);
+		if (log.isDebugEnabled()) {
+			log.debug("ALAW codec (" + org.ftoth.general.util.onesec.codec.alaw.libjitsi.JavaEncoder.class.getName() + ") successfully added");
+		}
+
+		org.ftoth.general.util.onesec.codec.alaw.libjitsi.Packetizer p = new org.ftoth.general.util.onesec.codec.alaw.libjitsi.Packetizer();
+		PlugInManager.addPlugIn(org.ftoth.general.util.onesec.codec.alaw.libjitsi.Packetizer.class.getName(), p.getSupportedInputFormats(), p.getSupportedOutputFormats(null), PlugInManager.CODEC);
+		if (log.isDebugEnabled()) {
+			log.debug("ALAW packetizer codec (" + org.ftoth.general.util.onesec.codec.alaw.libjitsi.Packetizer.class.getName() + ") successfully added");
+		}
+
+		// output format
 		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.wav");
 		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP));
 		cfg.setCustomProcessing(CustomProcessing.NONE);
 		AudioFormat f = new AudioFormat(Constants.ALAW_RTP, 8000,8,1, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, 8, 8000, Format.byteArray);
 		cfg.setDesiredOutputFormat(f);
 		cfg.setPresentingTarget(PresentingTarget.RTP);
-
-		// TODO: you need to install custom codecs and packetizer programmatically (what you find in etc/jmf.properties_ALAW)
 
 		return cfg;
 	}
@@ -197,6 +208,21 @@ public class TestMediaProcessor
 		return cfg;
 	}
 
+	// uLaw -> PCM file
+	private static MediaProcessorConfig initPCM_To_Player()
+	{
+		MediaProcessorConfig cfg = new MediaProcessorConfig();
+
+		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/3_ulaw.wav");
+		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.WAVE));
+		cfg.setCustomProcessing(CustomProcessing.NONE);
+		cfg.setDesiredOutputFormat(new AudioFormat(AudioFormat.LINEAR, 8000, 16, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray));
+
+		cfg.setPresentingTarget(PresentingTarget.PLAYER);
+
+		return cfg;
+	}
+
     // uLaw -> PCM file
     private static MediaProcessorConfig initULaw_To_Player()
     {
@@ -211,6 +237,21 @@ public class TestMediaProcessor
 
         return cfg;
     }
+
+/*	// g729 -> PCM file
+	private static MediaProcessorConfig initULaw_To_Player()
+	{
+		MediaProcessorConfig cfg = new MediaProcessorConfig();
+
+		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/3_ulaw.wav");
+		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.WAVE));
+		cfg.setCustomProcessing(CustomProcessing.NONE);
+		cfg.setDesiredOutputFormat(new AudioFormat(AudioFormat.LINEAR, 8000, 16, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray));
+
+		cfg.setPresentingTarget(PresentingTarget.PLAYER);
+
+		return cfg;
+	}*/
 
 	private static MediaProcessorConfig initTestProcessing()
 	{
@@ -229,7 +270,7 @@ public class TestMediaProcessor
 
 	private static void initCustomCodecs()
 	{
-		if (PlugInManager.removePlugIn(Packetizer.class.getName(), PlugInManager.CODEC)) {
+/*		if (PlugInManager.removePlugIn(Packetizer.class.getName(), PlugInManager.CODEC)) {
 			if (log.isDebugEnabled()) {
 				log.debug("ULAW packetizier codec (with getControls() bug) ({}) successfully removed");
 			}
@@ -238,7 +279,7 @@ public class TestMediaProcessor
 		PlugInManager.addPlugIn(UlawPacketizer.class.getName(), up.getSupportedInputFormats(), up.getSupportedOutputFormats(null), PlugInManager.CODEC);
 		if (log.isDebugEnabled()) {
 			log.debug("New ULAW packetizier codec (" + UlawPacketizer.class.getName() + ") successfully added");
-		}
+		}*/
 
 /*		AlawEncoder en = new AlawEncoder();
 		PlugInManager.addPlugIn(AlawEncoder.class.getName(), en.getSupportedInputFormats(), en.getSupportedOutputFormats(null), PlugInManager.CODEC);
@@ -252,7 +293,7 @@ public class TestMediaProcessor
 			log.debug("ALAW packetizer codec (" + AlawPacketizer.class.getName() + ") successfully added");
 		}*/
 
-		G729Encoder g = new G729Encoder();
+/*		G729Encoder g = new G729Encoder();
 		PlugInManager.addPlugIn(G729Encoder.class.getName(), g.getSupportedInputFormats(), g.getSupportedOutputFormats(null), PlugInManager.CODEC);
 		if (log.isDebugEnabled()) {
 			log.debug("G729 encoder/packetizer (" + G729Encoder.class.getName() + ") successfully added");
@@ -274,7 +315,7 @@ public class TestMediaProcessor
 		PlugInManager.addPlugIn(G729Parser.class.getName(), g729parser.getSupportedInputContentDescriptors(), null, PlugInManager.DEMULTIPLEXER);
 		if (log.isDebugEnabled()) {
 			log.debug("G729Parser (" + G729Parser.class.getName() + ") successfully added");
-		}
+		}*/
 
 /*		alawRtpFormat = p.getSupportedOutputFormats(null)[0];
 		g729RtpFormat = g.getSupportedOutputFormats(null)[0];*/

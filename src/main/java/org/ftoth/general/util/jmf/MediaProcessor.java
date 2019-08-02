@@ -56,7 +56,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 
 	// ============================= startup parameters =============================
 	private boolean jmfLogging = true;
-	private String jmfLoggingDirectory = "/tmp/jmf";
+	private String jmfLoggingDirectory = "/tmp";
 
 	public boolean isJmfLogging()
 	{
