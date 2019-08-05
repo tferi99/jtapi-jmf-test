@@ -3,8 +3,6 @@ package org.ftoth.general.util.jmf;
 import com.ibm.media.codec.audio.PCMToPCM;
 import com.sun.media.multiplexer.RTPSyncBufferMux;
 import com.sun.media.parser.audio.G729Parser;
-import com.sun.media.rtp.RTPSessionMgr;
-import jmapps.util.JMFUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ftoth.general.util.jmf.effect.GainEffect;
@@ -14,16 +12,12 @@ import org.ftoth.general.util.onesec.codec.g729.G729Encoder;
 import javax.media.*;
 import javax.media.control.FormatControl;
 import javax.media.control.TrackControl;
-import javax.media.format.AudioFormat;
 import javax.media.protocol.DataSource;
-import javax.media.protocol.FileTypeDescriptor;
 import javax.media.protocol.PushBufferDataSource;
 import javax.media.protocol.PushBufferStream;
 import javax.media.rtp.RTPManager;
-import javax.media.rtp.ReceiveStreamListener;
 import javax.media.rtp.SendStream;
 import javax.media.rtp.SessionAddress;
-import javax.media.rtp.event.ReceiveStreamEvent;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,12 +38,11 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 		NONE, SINK, RTP, PLAYER
 	}
 
-	MediaProcessorConfig config;
-	
 	private boolean savePerforming = false; // save performing right now
 	private boolean mediaPlayFailed = false;
 	private boolean endOfMedia = false;
 
+	private MediaProcessorConfig config;
 	private int mediaPlayTimeout = 0;
 	private Processor processor; // current processor
 	private MediaProcessorUI ui;
@@ -94,15 +87,16 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 	{
 		savePerforming = false;
 
-		// config
-		FileTypeDescriptor contentType = config.getContentType();
+/*		// config
+		FileTypeDescriptor contentType = config.getOutputContentType();
 		String inputDataUrl = config.getInputDataUrl();
-		AudioFormat desiredOutputFormat = config.getDesiredOutputFormat();
+		Format desiredOutputFormat = config.getDesiredOutputFormat();
+		outputSinkDataUrl
 		PresentingTarget presentingTarget = config.getPresentingTarget();
 		String rtpTargetAddress = config.getRtpTargetAddress();
+		int rtpTargetPort = config.getRtpTargetPort();*/
 		CustomProcessing customProcessing = config.getCustomProcessing();
-		int rtpTargetPort = config.getRtpTargetPort();
-		
+
 		// logging
 		JmfUtil.configLogging(jmfLogging, jmfLoggingDirectory, false);
 		
@@ -114,23 +108,23 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 		// CodecManager cm = new CodecManagerImpl();
 
 		if (config.getPresentingTarget() == PresentingTarget.PLAYER) {
-			config.setContentType(null);
+			config.setOutputContentType(null);
 		}
 
 		if (log.isInfoEnabled()) {
-			String ct = (contentType == null) ? "<RENDERING>" : contentType.toString();
+			String ct = (config.getOutputContentType() == null) ? "<RENDERING>" : config.getOutputContentType().toString();
 			log.info("======================================================================");
-			log.info("Input data URL: " + inputDataUrl);
+			log.info("Input data URL: " + config.getInputDataUrl());
 			log.info("Output content type: " + ct);
-			log.info("Desired output format: " + desiredOutputFormat);
+			log.info("Desired output format: " + config.getDesiredOutputFormat());
 			log.info("Custom processing mode: " + customProcessing);
-			log.info("Presenting target: " + presentingTarget);
-			switch (presentingTarget) {
+			log.info("Presenting target: " + config.getPresentingTarget());
+			switch (config.getPresentingTarget()) {
 			case SINK:
-				log.info("Output sink URL: " + rtpTargetPort);
+				log.info("Output sink URL: " + config.getOutputSinkDataUrl());
 				break;
 			case RTP:
-				log.info("RTP host: " + rtpTargetAddress + ":" + rtpTargetPort);
+				log.info("RTP host: " + config.getRtpTargetAddress() + ":" + config.getRtpTargetPort());
 				break;
 			case NONE:
 			case PLAYER:
@@ -149,11 +143,11 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 			Player p;
 
 			if (customProcessing == null || customProcessing == CustomProcessing.NONE) {
-				processor = JmfFactory.createRealizedProcessor(inputDataUrl, desiredOutputFormat, contentType);
+				processor = JmfFactory.createRealizedProcessor(config.getInputDataUrl(), config.getDesiredOutputFormat(), config.getOutputContentType());
 
 			}
 			else {
-				processor = JmfFactory.createCustomProcessor(inputDataUrl, contentType, null, this, this.getClass().getSimpleName());
+				processor = JmfFactory.createCustomProcessor(config.getInputDataUrl(), config.getOutputContentType(), null, this, this.getClass().getSimpleName());
 			}
 
 			if (processor == null) {
@@ -239,7 +233,6 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 			savePerforming = true;
 			break;
 		case PLAYER:
-
 			break;
 		case RTP:
 			startTransmitter(config.getRtpTargetAddress(), config.getRtpTargetPort());
@@ -301,7 +294,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 			log.info("Custom processing:" + config.getCustomProcessing());
 		}
 
-		AudioFormat desiredOutputFormat = config.getDesiredOutputFormat();
+		Format desiredOutputFormat = config.getDesiredOutputFormat();
 		CustomProcessing customProcessing = config.getCustomProcessing();
 				
 		TrackControl[] tracks = processor.getTrackControls();
@@ -499,213 +492,6 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 		return null;
 	}
 
-	public static class MediaProcessorConfig
-	{
-		// ------------------------- properties -------------------------
-
-		// inputDataUrl : URL for input data source
-		// contentType : You can use the Processor setContentDescriptor method to specify the format of the data output by the Processor.
-		// Setting the output data format to null causes the media data to be rendered instead of output to
-		// the Processor object's output DataSource.
-		// customProcessing : to build custom plugin chains
-		// desiredOutputFormat : expected output format of tracks
-		// presentingTarget : destination action after processing to present processor output
-
-		// ------------------ input ---------------------
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/easymoney64.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/3_ulaw.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/Encoded.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-8b-mono.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.pcm";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/short.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/nobody.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/nobody_gsm.wav";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/Sample.g729";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/Encoded.g729";
-		private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/out.g729";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/out.pcm";
-		// private String inputDataUrl = "file:/c:/Users/ftoth/Documents/media/x.g729";
-
-		// ------------------ processing ---------------------
-		// output content type - you may have to change this if you change presentingTarget
-		// e.g. for FILE mode (saving into wav) you need FileTypeDescriptor.WAVE
-		// and for RTP you need ContentDescriptor.RAW_RTP
-		// WAVE, RAW, RAW_RTP, MIXED, CONTENT_UNKNOWN
-		// private FileTypeDescriptor contentType = null; // for rendering, same if you choose PresentingTarget.PLAYER
-		// private FileTypeDescriptor contentType = new FileTypeDescriptor(FileTypeDescriptor.WAVE);
-		private FileTypeDescriptor contentType = new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP);
-		// private FileTypeDescriptor contentType = new FileTypeDescriptor(FileTypeDescriptor.RAW);
-		// private FileTypeDescriptor contentType = new FileTypeDescriptor(HeadlessAudioMux.OUTPUT_FORMAT_HEADLESS_G729);
-		// private FileTypeDescriptor contentType = new FileTypeDescriptor(HeadlessAudioMux.OUTPUT_FORMAT_HEADLESS_LINEAR);
-		// private FileTypeDescriptor contentType = new FileTypeDescriptor("lofasz");
-
-		// ------------------------- custom processing -------------------------
-		// custom processing
-		// NONE, ULAW_RTP, G729, ....
-		private CustomProcessing customProcessing = CustomProcessing.NONE;
-		// private CustomProcessing customProcessing = CustomProcessing.G729;
-		// private CustomProcessing customProcessing = CustomProcessing.TEST;
-		//private CustomProcessing customProcessing = CustomProcessing.G729_RTP_FROM_RAW;
-
-		// ------------------------- desired output format -------------------------
-		// desired output format for processing
-		//
-		// NOTE: not all output format can be specified for automatic processing,
-		// e.g. the following formats cannot work here:
-		// GSM, DVI, G723
-		//
-		// AudioFormat(encoding, sampleRate, sampleSizeInBits, channels, endian, signed, frameSizeInBits, frameRate, dataType)
-		// ULAW, ULAW_RTP, G729_RTP, DVI_RTP, GSM_RTP
-		//
-		// LINEAR
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.LINEAR, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
-		// Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray);
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.LINEAR, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, Format.NOT_SPECIFIED, 8, Format.NOT_SPECIFIED, Format.byteArray);
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.LINEAR, 8000, 16, 1, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, 8, Format.NOT_SPECIFIED, Format.byteArray);
-		// ULAW
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.ULAW, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
-		// Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray);
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.ULAW, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 8, Format.NOT_SPECIFIED, Format.byteArray);
-		// ULAW_RTP
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.ULAW_RTP, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
-		// Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray);
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.ULAW_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 8, Format.NOT_SPECIFIED,
-		// Format.byteArray);
-		// G729
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.G729, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED,
-		// Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.NOT_SPECIFIED, Format.byteArray);
-		// private AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.G729, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 8, Format.NOT_SPECIFIED, Format.byteArray);
-		// private AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.G729, 8000, 8, 1);
-		// G729_RTP
-		private AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.G729_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 8, Format.NOT_SPECIFIED, Format.byteArray);
-		// GSM
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.GSM_RTP, 8000, 0, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 520, Format.NOT_SPECIFIED,
-		// Format.byteArray);
-		// private static AudioFormat desiredOutputFormat = new AudioFormat(AudioFormat.GSM_MS, 8000, 0, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 520, Format.NOT_SPECIFIED,
-		// Format.byteArray);
-
-		
-		/**
-		 * Interactive mode with UI
-		 */
-		private boolean interactiveMode = false;
-
-		/**
-		 * Automatically start in interactive mode (only of interactiveMode is true)
-		 */
-		private boolean autoStartProcessor = true;
-		
-		// ------------------ output, presenting ---------------------
-		private PresentingTarget presentingTarget = PresentingTarget.RTP; // sending output of processor to: NONE, SINK, RTP, PLAYER
-		//private String rtpTargetAddress = "10.122.188.255";
-		private String rtpTargetAddress = "192.168.8.255";
-		private int rtpTargetPort = 22222;
-		// private String outputSinkDataUrl = "file:/c:/Users/ftoth/Documents/media/out.wav";
-		private String outputSinkDataUrl = "file:/c:/Users/ftoth/Documents/media/out.g729";
-
-		// private String outputSinkDataUrl = "file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.pcm";
-		public String getInputDataUrl()
-		{
-			return inputDataUrl;
-		}
-
-		public void setInputDataUrl(String inputDataUrl)
-		{
-			this.inputDataUrl = inputDataUrl;
-		}
-
-		public FileTypeDescriptor getContentType()
-		{
-			return contentType;
-		}
-
-		public void setContentType(FileTypeDescriptor contentType)
-		{
-			this.contentType = contentType;
-		}
-
-		public CustomProcessing getCustomProcessing()
-		{
-			return customProcessing;
-		}
-
-		public void setCustomProcessing(CustomProcessing customProcessing)
-		{
-			this.customProcessing = customProcessing;
-		}
-
-		public AudioFormat getDesiredOutputFormat()
-		{
-			return desiredOutputFormat;
-		}
-
-		public void setDesiredOutputFormat(AudioFormat desiredOutputFormat)
-		{
-			this.desiredOutputFormat = desiredOutputFormat;
-		}
-
-		public PresentingTarget getPresentingTarget()
-		{
-			return presentingTarget;
-		}
-
-		public void setPresentingTarget(PresentingTarget presentingTarget)
-		{
-			this.presentingTarget = presentingTarget;
-		}
-
-		public String getRtpTargetAddress()
-		{
-			return rtpTargetAddress;
-		}
-
-		public void setRtpTargetAddress(String rtpTargetAddress)
-		{
-			this.rtpTargetAddress = rtpTargetAddress;
-		}
-
-		public int getRtpTargetPort()
-		{
-			return rtpTargetPort;
-		}
-
-		public void setRtpTargetPort(int rtpTargetPort)
-		{
-			this.rtpTargetPort = rtpTargetPort;
-		}
-
-		public String getOutputSinkDataUrl()
-		{
-			return outputSinkDataUrl;
-		}
-
-		public void setOutputSinkDataUrl(String outputSinkDataUrl)
-		{
-			this.outputSinkDataUrl = outputSinkDataUrl;
-		}
-
-		public boolean isInteractiveMode()
-		{
-			return interactiveMode;
-		}
-
-		public void setInteractiveMode(boolean interactiveMode)
-		{
-			this.interactiveMode = interactiveMode;
-		}
-
-		public boolean isAutoStartProcessor()
-		{
-			return autoStartProcessor;
-		}
-
-		public void setAutoStartProcessor(boolean autoStartProcessor)
-		{
-			this.autoStartProcessor = autoStartProcessor;
-		}
-	}
-
 	private void initCustomPlugins()
 	{
 		// --------------------------------- removing all ----------------------------------------------------
@@ -778,23 +564,17 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 		}
 	}
 
-
+	/**
+ 	 * RTPManager.addFormat(...) is used to add a dynamic payload to format mapping to the RTPManager.
+	 * The RTPManager maintains all static payload numbers and their correspnding formats as
+ 	 * mentioned in the Audio/Video profile document.
+	 */
 	private void initCustomFormatsForProcessor()
 	{
 		// ------------------- RTP formats -------------------
 		// dummy (to access internal static format list via non-static addFormat() )
 		RTPManager mgr = RTPManager.newInstance();
-
-		/*RTPSessionMgr mgr = JMFUtils.createSessionManager("127.0.0.1", 65000, 32, new ReceiveStreamListener()
-		{
-			public void update(ReceiveStreamEvent receiveStreamEvent)
-			{
-				// do nothing
-			}
-		});*/
-
 		Map<Integer, Format> customFormats = initCustomFormatsForRtp();
-
 		for (Integer payloadType : customFormats.keySet()) {
 			Format fmt = customFormats.get(payloadType);
 			mgr.addFormat(fmt, payloadType);
@@ -806,6 +586,7 @@ public class MediaProcessor implements ControllerListener, CustomProcessorHelper
 	 *
 	 * <p>
 	 * To initialize custom media formats which will be added to RTP sessions.
+	 *
 	 *
 	 */
 	private Map<Integer, Format> initCustomFormatsForRtp()

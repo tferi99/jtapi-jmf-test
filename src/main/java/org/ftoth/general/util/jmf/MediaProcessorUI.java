@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 
 import jmapps.ui.JMFrame;
 
-import org.ftoth.general.util.jmf.MediaProcessor.MediaProcessorConfig;
+import org.ftoth.general.util.jmf.MediaProcessorConfig;
 import org.ftoth.general.util.jmf.MediaProcessor.PresentingTarget;
 
 

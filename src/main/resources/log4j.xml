@@ -56,7 +56,7 @@
 	
 
 	<root>
-		<priority value="all" />
+		<priority value="debug" />
 		<appender-ref ref="Console" />
 <!--
         For Tomcat server use standard STDOUT only, because log file location depends on startup directory

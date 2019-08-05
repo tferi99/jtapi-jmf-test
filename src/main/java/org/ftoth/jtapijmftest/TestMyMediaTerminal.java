@@ -1,5 +1,17 @@
 package org.ftoth.jtapijmftest;
 
+import com.cisco.jtapi.extensions.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.ftoth.general.util.jmf.MediaProcessor;
+import org.ftoth.general.util.jmf.MediaProcessor.CustomProcessing;
+import org.ftoth.general.util.jmf.MediaProcessorConfig;
+import org.ftoth.general.util.jmf.MediaProcessor.PresentingTarget;
+import org.ftoth.general.util.jmf.MediaProcessorConfigImpl;
+import org.ftoth.general.util.jtapi.CallEvUtil;
+import org.ftoth.general.util.jtapi.TermEvUtil;
+import org.ftoth.general.util.jtapi.TerminalUtil;
+
 import javax.media.Format;
 import javax.media.format.AudioFormat;
 import javax.media.protocol.FileTypeDescriptor;
@@ -14,24 +26,6 @@ import javax.telephony.callcontrol.events.CallCtlTermConnRingingEv;
 import javax.telephony.events.CallEv;
 import javax.telephony.events.ConnFailedEv;
 import javax.telephony.events.TermEv;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.ftoth.general.util.jmf.MediaProcessor.CustomProcessing;
-import org.ftoth.general.util.jmf.MediaProcessor.MediaProcessorConfig;
-import org.ftoth.general.util.jmf.MediaProcessor.PresentingTarget;
-import org.ftoth.general.util.jmf.MediaProcessorOld;
-import org.ftoth.general.util.jtapi.CallEvUtil;
-import org.ftoth.general.util.jtapi.TermEvUtil;
-import org.ftoth.general.util.jtapi.TerminalUtil;
-
-import com.cisco.jtapi.extensions.CiscoG711MediaCapability;
-import com.cisco.jtapi.extensions.CiscoG729MediaCapability;
-import com.cisco.jtapi.extensions.CiscoMediaCapability;
-import com.cisco.jtapi.extensions.CiscoMediaOpenLogicalChannelEv;
-import com.cisco.jtapi.extensions.CiscoRTPOutputStartedEv;
-import com.cisco.jtapi.extensions.CiscoRouteTerminal;
-import com.cisco.jtapi.extensions.CiscoTerminalObserver;
 
 public class TestMyMediaTerminal extends JtapiAppBase
 {
@@ -197,19 +191,19 @@ public class TestMyMediaTerminal extends JtapiAppBase
 /*		RtpTransmit tr = new RtpTransmit(new MediaLocator(mediaUrl), ipAddress, Integer.toString(pb), null);
 		tr.start();*/
 		
-		MediaProcessorConfig cfg = new MediaProcessorConfig(); 
+		MediaProcessorConfig cfg = new MediaProcessorConfigImpl();
 		cfg.setAutoStartProcessor(true);
 		cfg.setRtpTargetAddress(ipAddress);
 		cfg.setRtpTargetPort(pb);
 		
 		cfg.setInputDataUrl("file:/c:/Users/ftoth/Documents/media/pcm-8000Hz-16b-mono.wav");
-		cfg.setContentType(new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP));
+		cfg.setOutputContentType(new FileTypeDescriptor(FileTypeDescriptor.RAW_RTP));
 		cfg.setCustomProcessing(CustomProcessing.NONE);
 		cfg.setDesiredOutputFormat(new AudioFormat(AudioFormat.ULAW_RTP, 8000, 8, 1, AudioFormat.LITTLE_ENDIAN, AudioFormat.UNSIGNED, 8, Format.NOT_SPECIFIED, Format.byteArray));
 		cfg.setPresentingTarget(PresentingTarget.RTP);
 		
 		
-		MediaProcessorOld tp = new MediaProcessorOld(cfg);
+		MediaProcessor tp = new MediaProcessor(cfg);
 		
 		tp.initAndStart();
 	}
